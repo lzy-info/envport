@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "envport"
+version = "0.1.0a1"
+description = "Small, inspectable environment contract checks and trajectory schema validation"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "EnvPort contributors"}]
+dependencies = []
+
+[project.scripts]
+envport = "envport.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

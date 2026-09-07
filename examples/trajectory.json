@@ -1,0 +1,24 @@
+{
+  "schema_version": "envport.trajectory.v1",
+  "images": {"screen_0": "screenshots/example.png"},
+  "steps": [
+    {
+      "action": {"move": "right"},
+      "reward": 0.0,
+      "token_ids": [101, 208, 305],
+      "logprobs": [-0.12, -0.3, -0.07],
+      "loss_mask": [0, 1, 1],
+      "image_refs": ["screen_0"],
+      "terminated": false
+    },
+    {
+      "action": {"move": "right"},
+      "reward": 0.0,
+      "token_ids": [101, 208],
+      "logprobs": [-0.09, -0.22],
+      "loss_mask": [false, true],
+      "image_refs": [],
+      "terminated": false
+    }
+  ]
+}

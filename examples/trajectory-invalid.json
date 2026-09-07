@@ -1,0 +1,12 @@
+{
+  "schema_version": "envport.trajectory.v1",
+  "images": {},
+  "steps": [{
+    "action": {"move": "right"},
+    "reward": "one",
+    "token_ids": [101, 208],
+    "logprobs": [-0.2],
+    "loss_mask": [0, 2],
+    "image_refs": ["missing_image"]
+  }]
+}

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="EnvPort 是面向 Agent RL 的实验性环境检查工具。用可复现的探针检查环境状态、评分和轨迹契约。">
+  <meta name="theme-color" content="#1547ed">
+  <title>EnvPort — 先检查环境，再启动训练</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/demo-reports.js" defer></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到内容</a>
+  <header class="header wrap">
+    <a class="brand" href="./" aria-label="EnvPort 首页"><span class="brand-mark" aria-hidden="true">e/</span>EnvPort<span class="brand-cn">境枢</span></a>
+    <nav aria-label="主导航"><a href="#checks">检查什么</a><a href="guide.html">文档</a><a class="nav-source" href="downloads/envport-source.zip" download>下载源码 <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main id="main">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="edition">0.1 · ALPHA</span> OPEN-SOURCE ENVIRONMENT TOOLING</p>
+        <h1>先检查环境。<br><span>再启动训练。</span></h1>
+        <p class="hero-description">程序跑通，不代表训练链路正确。<br>用一组可复现的探针，检查环境状态、评分逻辑和轨迹结构。</p>
+        <div class="hero-actions"><a class="button primary" href="#quickstart">运行第一个检查 <span aria-hidden="true">↗</span></a><a class="text-link" href="guide.html">阅读文档 <span aria-hidden="true">→</span></a></div>
+        <p class="hero-note">Python 3.11+ <span>/</span> 零运行时依赖 <span>/</span> MIT License</p>
+      </div>
+      <div class="terminal" aria-label="环境检查报告示例">
+        <div class="terminal-bar"><span>envport / doctor</span><span class="terminal-tag">CAPTURED DEMO</span></div>
+        <div class="terminal-content">
+          <p class="command"><span class="prompt">$</span> envport doctor --demo <span id="demo-name">good</span></p>
+          <fieldset class="demo-switch"><legend class="sr-only">选择内置示例环境</legend><label><input type="radio" name="demo" value="good" checked>正常环境</label><label><input type="radio" name="demo" value="bad">故障环境</label></fieldset>
+          <div id="report-content" aria-live="polite"><p>正在读取随源码提供的检查结果…</p></div>
+          <div class="terminal-foot"><span>真实 CLI 输出 · 内置模拟环境</span><button id="download-report" type="button" disabled>下载 JSON ↓</button></div>
+        </div>
+      </div>
+    </section>
+    <div class="scope-band"><div class="wrap scope-inner"><span class="scope-label">THIS RELEASE</span><p>现在提供检查内核与模拟环境。<strong>尚未接入 veRL / AndroidWorld / OSWorld，也不验证视觉梯度。</strong></p></div></div>
+    <section class="section wrap" id="checks">
+      <div class="section-heading"><div><p class="eyebrow">01 / CHECK THE CONTRACT</p><h2>先暴露错误，<br>再扩展兼容性。</h2></div><p class="section-description">EnvPort 不替代你的训练框架。它从最小的环境契约出发，为接入之前的检查提供一个可扩展起点。</p></div>
+      <div class="check-grid">
+        <article class="check-card"><span class="card-index">01</span><h3>状态真的复位了吗？</h3><p>同一 seed 多次初始化，并交错操作两个独立实例，检查可观测状态是否残留或串扰。</p><code>reset / isolation</code></article>
+        <article class="check-card"><span class="card-index">02</span><h3>奖励真的合理吗？</h3><p>对比空操作和已知成功路径，检查有限奖励及声明范围。通过只代表这些探针通过。</p><code>noop / oracle / reward</code></article>
+        <article class="check-card"><span class="card-index">03</span><h3>轨迹结构完整吗？</h3><p>检查 token、logprob、loss mask 的长度与类型，以及图像引用。不是训练张量或梯度验证。</p><code>trajectory / schema</code></article>
+      </div>
+    </section>
+    <section class="workflow-section"><div class="wrap">
+      <div class="section-heading"><div><p class="eyebrow">02 / A SMALL, INSPECTABLE LOOP</p><h2>把接入过程变得可检查。</h2></div><a href="guide.html#adapter" class="text-link">查看适配契约 →</a></div>
+      <ol class="flow" aria-label="检查流程"><li><span class="flow-step">INPUT</span><h3>一个环境工厂</h3><p>创建独立环境实例<br>声明可运行的测试探针</p></li><li class="flow-active"><span class="flow-step">ENVPORT</span><h3>执行契约检查</h3><p>复位、隔离、评分<br>记录通过 / 失败 / 跳过</p></li><li><span class="flow-step">OUTPUT</span><h3>一份结构化报告</h3><p>终端读结果，JSON 留证据<br>失败时返回非零退出码</p></li></ol>
+    </div></section>
+    <section class="section wrap quickstart" id="quickstart">
+      <div><p class="eyebrow">03 / RUN IT LOCALLY</p><h2>从一个可复现的<br>失败开始。</h2><p class="section-description">下载并解压源码，在项目根目录运行。<br>无需 GPU、API Key 或在线账户。</p><p class="small-note">尚未发布到 PyPI，请从源码安装。<br>故障示例返回非零退出码是预期行为。</p><a class="text-link" href="downloads/envport-source.zip" download>下载完整源码 .zip →</a></div>
+      <div class="code-panel"><div class="code-header"><span>QUICKSTART</span><button class="copy-button" type="button" data-copy="install-commands">复制命令</button></div><pre><code id="install-commands">python -m pip install -e .
+
+# 应通过：内置正常环境
+envport doctor --demo good
+
+# 应失败：内置故障环境
+envport doctor --demo bad
+
+# 只校验轨迹结构，不执行训练
+envport validate-trajectory examples/trajectory.json</code></pre><p id="copy-status" class="copy-status" role="status"></p></div>
+    </section>
+    <section class="roadmap wrap"><div><p class="eyebrow">BUILDING IN THE OPEN</p><h2>适配器会增加。<br>能力边界始终公开。</h2></div><div class="roadmap-list"><p><span class="status ready">已实现</span>检查内核 · 本地模拟环境 · 轨迹结构校验</p><p><span class="status planned">下一步</span>选择一个真实 GUI 环境，建立回归用例</p><p><span class="status planned">研究中</span>veRL 对接 · 视觉数据保真 · 失败重放</p><a class="text-link" href="https://github.com/lzy-info/envport/issues/new?template=adapter-request.md" target="_blank" rel="noopener noreferrer">提交适配需求 ↗</a> <span aria-hidden="true"> · </span> <a class="text-link" href="https://github.com/lzy-info/envport" target="_blank" rel="noopener noreferrer">GitHub 源码 ↗</a></div></section>
+  </main>
+  <footer class="footer wrap"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">e/</span>EnvPort</a><p>实验性开源工具，不是训练正确性或安全性认证。</p><a href="license.txt">MIT License</a></footer>
+</body>
+</html>

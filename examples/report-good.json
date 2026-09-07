@@ -1,0 +1,66 @@
+{
+  "schema_version": "envport.report.v1",
+  "kind": "doctor",
+  "created_at": "2026-09-07T03:27:38.195837+00:00",
+  "status": "pass",
+  "summary": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0
+  },
+  "source": "demo:good",
+  "seed": 7,
+  "scope": "Sampled in-process contract checks; not a proof of safety, isolation, determinism, or training compatibility.",
+  "checks": [
+    {
+      "name": "interface",
+      "status": "pass",
+      "detail": "Two distinct instances expose reset, observe, step, grade, close."
+    },
+    {
+      "name": "probe_contract",
+      "status": "pass",
+      "detail": "Explicit action sequences and numerical expectations are valid."
+    },
+    {
+      "name": "same_seed_reset",
+      "status": "pass",
+      "detail": "Compared initial observations after repeated same-seed resets and on a second instance."
+    },
+    {
+      "name": "reset_after_actions",
+      "status": "pass",
+      "detail": "Compared fresh reset observation with same-seed reset after oracle actions."
+    },
+    {
+      "name": "cross_instance_isolation",
+      "status": "pass",
+      "detail": "Second instance observation remained unchanged while the first was stepped."
+    },
+    {
+      "name": "noop_grade",
+      "status": "pass",
+      "detail": "No-op grade 0.0; expected <= 0.0."
+    },
+    {
+      "name": "oracle_grade",
+      "status": "pass",
+      "detail": "Oracle grade 1.0; expected >= 1.0."
+    },
+    {
+      "name": "deterministic_replay",
+      "status": "pass",
+      "detail": "Compared observations, rewards, termination flags, and grade for same-seed oracle runs on fresh instances."
+    },
+    {
+      "name": "reward_bounds",
+      "status": "pass",
+      "detail": "0 of 9 sampled rewards non-finite or outside [0.0, 1.0]."
+    },
+    {
+      "name": "cleanup",
+      "status": "pass",
+      "detail": "Closed 6 constructed instances."
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="EnvPort 快速开始、环境探针契约、轨迹格式与 GitHub Pages 部署说明。"><title>使用文档 — EnvPort</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/style.css"></head>
+<body><a class="skip" href="#main">跳到内容</a><header class="header wrap"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">e/</span>EnvPort<span class="brand-cn">境枢</span></a><nav aria-label="主导航"><a href="index.html#checks">检查什么</a><a href="guide.html" aria-current="page">文档</a><a class="nav-source" href="downloads/envport-source.zip" download>下载源码 ↗</a></nav></header>
+<div class="wrap docs-layout"><aside class="docs-nav" aria-label="文档目录"><a href="#start">快速开始</a><a href="#adapter">接入自己的环境</a><a href="#trajectory">轨迹结构</a><a href="#limits">已知边界</a><a href="#publish">GitHub Pages</a></aside>
+<main class="docs-article" id="main"><p class="eyebrow">ENVPORT / DOCUMENTATION / 0.1 ALPHA</p><h1>一个小而可检查的起点。</h1><p>EnvPort 目前是本地 Python 工具，不是云端训练平台。内置的是一个计数器环境：动作改变状态，评分函数判断是否达到目标。它用来展示检查机制，不代表 GUI benchmark 成绩。</p>
+<section id="start"><h2>快速开始</h2><p>需要 Python 3.11 或更高版本。<a href="downloads/envport-source.zip" download>下载源码</a>，解压后在包含 <code>pyproject.toml</code> 的项目根目录执行：</p><pre><code>python -m venv .venv
+
+# macOS / Linux
+source .venv/bin/activate
+# Windows PowerShell：使用下一行替代上面一行
+# .venv\Scripts\Activate.ps1
+
+python -m pip install -e .
+envport doctor --demo good
+envport doctor --demo bad</code></pre><p><code>good</code> 应全部通过，<code>bad</code> 应报告失败。程序退出码：<code>0</code> 没有失败（可能有跳过项）、<code>1</code> 检查失败、<code>2</code> 输入或命令错误。请同时阅读跳过项，不要只看退出码。</p><pre><code>envport doctor --demo good --format json
+envport doctor --demo bad --output bad-report.json
+python -m unittest discover -s tests -v</code></pre><p><code>--output</code> 写入新 JSON 文件；为保护已有结果，不覆盖同名文件。首页的报告由这两个内置环境的真实 CLI 运行生成，不会在访客浏览器内执行 Python。</p></section>
+<section id="adapter"><h2>接入自己的环境</h2><p>先从提供的示例工厂开始。在项目根目录运行：</p><pre><code>python -m envport doctor --factory examples.custom_factory:make_env</code></pre><p>工厂是一个不带参数的可调用对象，每次调用都必须返回一个新的环境实例。环境实现以下约定：</p><div class="table-scroll"><table><thead><tr><th>方法</th><th>约定</th></tr></thead><tbody><tr><td><code>reset(seed)</code></td><td>恢复初始状态，返回 JSON 兼容观测。</td></tr><tr><td><code>observe()</code></td><td>返回当前观测，不改变环境。</td></tr><tr><td><code>step(action)</code></td><td>返回 <code>StepResult(observation, reward, terminated)</code>。</td></tr><tr><td><code>grade()</code></td><td>返回当前状态的有限数值评分，不改变环境。</td></tr><tr><td><code>close()</code></td><td>释放创建的资源。</td></tr><tr><td><code>envport_probe()</code></td><td>返回测试动作和预期评分；缺失时跳过动作相关检查。</td></tr></tbody></table></div><p>探针必须由环境作者明确提供。工具不会猜测怎样才算任务成功：</p><pre><code>from envport import ProbeSpec, StepResult
+
+def envport_probe(self):
+    return ProbeSpec(
+        noop_actions=("noop",),
+        oracle_actions=("increment", "increment", "increment"),
+        reward_min=0.0,
+        reward_max=1.0,
+        noop_grade_max=0.0,
+        oracle_grade_min=1.0,
+    )</code></pre><p>上面动作名称只是示意，请替换为你的环境支持的动作。不同环境可以使用字典动作、不同奖励范围和不同成功门槛。</p><div class="notice"><p><strong>只加载可信代码。</strong> <code>--factory</code> 会在当前 Python 进程中导入并执行你指定的模块，没有沙箱、超时或网络隔离。不要指向未经审查的第三方工厂，不要连接生产账户或付费执行环境。</p></div></section>
+<section id="trajectory"><h2>轨迹结构校验</h2><p>当前是 EnvPort 内部实验格式，不宣称兼容 ATIF、OpenEnv 或任何 trainer。后续适配器应优先复用上游格式。</p><pre><code>envport validate-trajectory examples/trajectory.json
+envport validate-trajectory examples/trajectory-invalid.json</code></pre><p>轨迹顶层包含 <code>schema_version</code>、<code>images</code> 映射和 <code>steps</code>。每一步记录 <code>action</code>、<code>reward</code>、<code>token_ids</code>、<code>logprobs</code>、<code>loss_mask</code> 和 <code>image_refs</code>。完整可运行文件随源码提供。</p><p>校验器检查基础类型、非有限数值、三组 token 数组长度及图像引用是否存在。它不读取远程图片、不验证 tokenizer、不检查 pixel_values、mRoPE、KL 或梯度。图像映射只是元数据，不能证明模型真正使用了图像。</p></section>
+<section id="limits"><h2>已知边界</h2><ul><li>环境检查只覆盖选定 seed、给定动作序列和可观测状态，不证明隐藏状态完全一致。</li><li>隔离探针是交错的顺序执行，不是并发压测，也不证明进程或容器隔离。</li><li>空操作与已知成功路径不是完整的防 reward hacking 测试。</li><li>轨迹校验只验证结构，不验证训练质量、视觉信息保真或最终策略效果。</li><li>veRL、AndroidWorld、OSWorld、云沙箱、异步 rollout 和交互式失败重放尚未实现。</li><li>此版本不承诺服务可用性、训练速度或节省费用。</li></ul><p>下一步应先选一个真实环境，积累可公开复现的失败用例，再决定第二个 trainer 接口。</p></section>
+<section id="publish"><h2>发布到 GitHub Pages</h2><p>源码已经包含 <code>.github/workflows/pages.yml</code>，发布目录为 <code>dist/</code>。</p><ol><li>在自己的 GitHub 账号创建公开仓库，例如 <code>envport</code>，把完整项目推送到 <code>main</code>。</li><li>进入 <strong>Settings → Pages → Build and deployment → Source</strong>，选择 <strong>GitHub Actions</strong>。</li><li>进入 Actions，运行 <strong>GitHub Pages</strong> 工作流，等待完成。</li><li>以 Pages 设置或工作流显示的地址为准。若仓库是 <code>lzy-info/envport</code>，预期地址为 <code>https://lzy-info.github.io/envport/</code>。</li></ol><p>此地址是部署后的预期地址，不表示当前已上线。静态网站不需要自购域名或服务器。修改源码后可运行 <code>python scripts/build_release.py</code> 重新生成示例报告与下载包。</p><p>GitHub Pages 适合开源项目说明和文档，不应用作商业交易或商业 SaaS 的托管服务。请不要在这里收集密码、客户业务数据或付款信息。参阅 <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits" target="_blank" rel="noopener noreferrer">GitHub Pages 使用限制</a>和<a href="https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages" target="_blank" rel="noopener noreferrer">官方部署文档</a>。</p></section>
+</main></div><footer class="footer wrap"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">e/</span>EnvPort</a><p>开源、实验性、范围明确。</p><a href="license.txt">MIT License</a></footer></body></html>
